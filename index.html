@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arbitrage calculator</title>
+<style>
+  :root {
+    --ink: #16181c; --ink-soft: #5b6069; --ink-faint: #9498a1;
+    --line: #dfe1e6; --paper: #fbfbfa; --card: #ffffff;
+    --long: #1a5c3f; --long-bg: #e7f3ec;
+    --flat: #8a6d1f; --flat-bg: #faf2df;
+    --warn: #9c2b2b; --warn-bg: #fbe9e9;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+    --sans: -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #eceef1; --ink-soft: #a8adb6; --ink-faint: #71767f;
+      --line: #2b2e34; --paper: #121316; --card: #191b1f;
+      --long: #7fd4ac; --long-bg: #163325;
+      --flat: #e6c05e; --flat-bg: #322a13;
+      --warn: #e88989; --warn-bg: #351b1b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--sans); color: var(--ink); background: var(--paper); margin: 0; padding: 1.5rem 1.25rem 3rem; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .masthead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+  .masthead h1 { font-size: 17px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .masthead .asof { font-family: var(--mono); font-size: 12px; color: var(--ink-faint); }
+  .tabnav { display: flex; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+  .tabnav .tab { background: none; border: none; padding: 8px 4px; margin-right: 20px; font-size: 13px; font-weight: 600; font-family: inherit; color: var(--ink-faint); border-bottom: 2px solid transparent; }
+  .tabnav .tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px 18px; margin-bottom: 14px; }
+  .panel h2 { font-size: 13px; font-weight: 600; margin: 0 0 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .panel h2 .hint { font-size: 11px; font-weight: 400; color: var(--ink-faint); }
+  .controls { display: flex; flex-wrap: wrap; gap: 14px 24px; }
+  .ctl .k { font-size: 11px; color: var(--ink-soft); margin-bottom: 5px; }
+
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .seg button { background: var(--paper); color: var(--ink-soft); border: none; border-right: 1px solid var(--line); height: 30px; padding: 0 12px; font: 600 12px var(--sans); cursor: pointer; }
+  .seg button:last-child { border-right: none; }
+  .seg button.on { background: var(--ink); color: var(--paper); }
+  .seg button:focus-visible { outline: 2px solid var(--long); outline-offset: -2px; }
+
+  .field label { display: block; font-size: 11px; color: var(--ink-soft); margin-bottom: 5px; }
+  .field input, .field select { width: 100%; height: 34px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); font-family: var(--mono); font-size: 13px; padding: 0 9px; }
+  .field input.text { font-family: var(--sans); }
+  .field input:focus, .field select:focus { outline: 2px solid var(--long); outline-offset: -1px; }
+  .field input.bad { border-color: var(--warn); }
+  .field .conv { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); margin-top: 4px; min-height: 14px; }
+  .check { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-soft); cursor: pointer; }
+
+  .leg { border-top: 1px solid var(--line); padding: 14px 0 4px; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); align-items: start; }
+  .leg:first-of-type { border-top: none; padding-top: 2px; }
+  .stakegrid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 14px; }
+
+  button.link { background: none; border: none; padding: 0; color: var(--ink-soft); font: 12px var(--sans); text-decoration: underline; cursor: pointer; }
+  button.link:hover { color: var(--ink); }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-head .name { font-size: 14px; font-weight: 600; }
+  .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 100px; font-family: var(--mono); letter-spacing: 0.01em; }
+  .badge.long { color: var(--long); background: var(--long-bg); }
+  .badge.flat { color: var(--flat); background: var(--flat-bg); }
+  .badge.short { color: var(--warn); background: var(--warn-bg); }
+  .statrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .stat { border-left: 2px solid var(--line); padding-left: 10px; }
+  .stat .k { font-size: 11px; color: var(--ink-soft); margin-bottom: 3px; }
+  .stat .v { font-family: var(--mono); font-size: 18px; font-weight: 600; }
+  .stat .v.pos { color: var(--long); } .stat .v.neg { color: var(--warn); }
+  .meter-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-soft); margin-bottom: 5px; }
+  .meter-label .num { font-family: var(--mono); color: var(--ink); }
+  .meter { position: relative; height: 6px; background: var(--line); border-radius: 3px; margin-bottom: 18px; }
+  .meter .fill { position: absolute; top: 0; left: 0; height: 6px; border-radius: 3px; background: var(--long); }
+  .meter .fill.over { background: var(--warn); }
+  .meter .mark { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--ink); border-radius: 1px; }
+  .tablewrap { overflow-x: auto; }
+  table.res { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.res th { text-align: right; font-weight: 500; color: var(--ink-faint); font-size: 11px; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.res td { text-align: right; padding: 8px; font-family: var(--mono); border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.res th:first-child, table.res td:first-child { text-align: left; }
+  table.res td:first-child { font-family: var(--sans); white-space: normal; }
+  table.res td .sub { display: block; font-size: 11px; color: var(--ink-faint); font-family: var(--mono); }
+  table.res td.stake { font-weight: 600; }
+  .note { font-size: 12px; color: var(--ink-soft); margin: 12px 0 0; line-height: 1.5; }
+  .note.warn { color: var(--warn); }
+  .empty { font-size: 13px; color: var(--ink-faint); padding: 1.2rem 0 .4rem; text-align: center; }
+  .footnote { font-size: 11px; color: var(--ink-faint); font-style: italic; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1>Arbitrage calculator</h1>
+    <span class="asof">odds in &middot; stakes out</span>
+  </div>
+  <div class="tabnav"><button class="tab active" type="button">Calculator</button></div>
+  <div id="app"></div>
+  <p class="footnote">Guaranteed profit assumes every bet is accepted at the odds shown, and that bookmakers do not void or limit a leg. Not financial advice.</p>
+</div>
+<script src="js/arb.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
