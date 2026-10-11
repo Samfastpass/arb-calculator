@@ -89,6 +89,36 @@
   .note { font-size: 12px; color: var(--ink-soft); margin: 12px 0 0; line-height: 1.5; }
   .note.warn { color: var(--warn); }
   .empty { font-size: 13px; color: var(--ink-faint); padding: 1.2rem 0 .4rem; text-align: center; }
+  .tabnav .tab { cursor: pointer; }
+  .keyrow { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+  .keyrow .field { flex: 1 1 260px; }
+  button.btn { height: 34px; padding: 0 16px; border-radius: 6px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font: 600 13px var(--sans); cursor: pointer; }
+  button.btn.ghost { background: none; color: var(--ink); border-color: var(--line); }
+  button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.btn:active:not(:disabled) { transform: scale(0.98); }
+  .usage { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); margin-top: 10px; }
+  .msg { font-size: 12px; margin-top: 10px; color: var(--ink-soft); }
+  .msg.err { color: var(--warn); }
+  .bookgrid, .sportgrid { display: grid; gap: 6px 14px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .sportgrid { max-height: 240px; overflow-y: auto; margin-top: 10px; padding-right: 4px; }
+  .bookgrid .bk, .sportgrid .bk { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .bk .tag { font-size: 10px; color: var(--ink-faint); font-family: var(--mono); }
+  .bk .cm { width: 52px; height: 24px; margin-left: auto; border: 1px solid var(--line); border-radius: 5px; background: var(--paper); color: var(--ink); font: 11px var(--mono); padding: 0 5px; }
+  .grouphead { grid-column: 1 / -1; font-size: 11px; font-weight: 600; color: var(--ink-faint); margin-top: 6px; }
+  .opp { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-top: 10px; background: var(--card); }
+  .opp.arb { border-color: var(--long); }
+  .opp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .opp-head .t { font-size: 13px; font-weight: 600; }
+  .opp-head .s { font-size: 11px; color: var(--ink-faint); font-family: var(--mono); }
+  .oppleg { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 12px; font-size: 12px; padding: 3px 0; align-items: baseline; }
+  .oppleg .p { font-family: var(--mono); font-weight: 600; }
+  .oppleg .b { color: var(--ink-soft); }
+  .oppleg .b .age { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+  .oppleg .b .age.old { color: var(--warn); }
+  .opp-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; font-size: 11px; color: var(--ink-soft); }
+  .opp-foot .flags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .flag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 100px; font-family: var(--mono); color: var(--warn); background: var(--warn-bg); }
+  .focus-dot { color: var(--long); font-weight: 600; }
   .footnote { font-size: 11px; color: var(--ink-faint); font-style: italic; margin-top: 10px; }
 </style>
 </head>
@@ -98,11 +128,19 @@
     <h1>Arbitrage calculator</h1>
     <span class="asof">odds in &middot; stakes out</span>
   </div>
-  <div class="tabnav"><button class="tab active" type="button">Calculator</button></div>
-  <div id="app"></div>
+  <div class="tabnav">
+    <button class="tab active" type="button" data-tab="calc">Calculator</button>
+    <button class="tab" type="button" data-tab="scan">Scanner</button>
+  </div>
+  <div id="tab-calc"><div id="app"></div></div>
+  <div id="tab-scan" style="display:none"><div id="scanner"></div></div>
   <p class="footnote">Guaranteed profit assumes every bet is accepted at the odds shown, and that bookmakers do not void or limit a leg. Not financial advice.</p>
 </div>
 <script src="js/arb.js"></script>
+<script src="js/scan.js"></script>
+<script src="js/odds-source.js"></script>
 <script src="js/app.js"></script>
+<script src="js/scanner-ui.js"></script>
+<script src="js/tabs.js"></script>
 </body>
 </html>

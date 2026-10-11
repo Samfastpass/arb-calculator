@@ -192,5 +192,22 @@
     else if (t.id === 'useComm') { state.useComm = t.checked; buildForm(); }
   });
 
+  // Entry point for the scanner: fill the calculator with an opportunity.
+  // spec.legs = [{ name, book, dec, comm }] (2 or 3 legs, decimal odds, commission %).
+  window.Calculator = {
+    load: function (spec) {
+      var n = spec.legs.length;
+      if (n < 2 || n > 3) return;
+      state.n = n; state.mode = 'total'; state.roundTo = 0; state.legIndex = 0;
+      state.useComm = spec.legs.some(function (l) { return l.comm > 0; });
+      spec.legs.forEach(function (l, i) {
+        var t = state.legs[i];
+        t.name = l.name; t.book = l.book || ''; t.dec = l.dec;
+        t.text = Arb.formatOdds(l.dec, state.format); t.comm = l.comm > 0 ? String(l.comm) : '';
+      });
+      buildForm();
+    }
+  };
+
   buildForm();
 })();
